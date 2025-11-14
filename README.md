@@ -1,244 +1,103 @@
-# Gestor de Inventario Electrónico con JDBC
+**Gestor de Inventario Electrónico**
 
-Sistema completo de gestión de inventario utilizando Java, JDBC, H2 (embebida) y Oracle (no embebida) con procedimientos almacenados.
+Pequeña aplicación Java para gestionar productos electrónicos. Soporta dos tipos de base de datos: **H2** (recomendada para comenzar) y **Oracle** (opcional, para entornos más avanzados).
 
-##  Contenido del Proyecto
+**Requisitos**
+- Java JDK 21
+- (Opcional) Oracle Database si quieres usar la opción Oracle
+- Archivos JAR necesarios: `h2-2.4.240.jar` y `ojdbc8.jar`
 
-### Estructura de Paquetes
+**Preparar el proyecto**
+1. Crear la carpeta `src/lib/` (si no existe).
+2. Copiar los JAR (`h2-2.4.240.jar` y `ojdbc8.jar`) dentro de `src/lib/`.
+
+**Compilar y ejecutar (Windows / PowerShell)**
+```powershell
+# Compilar (genera la carpeta bin con las clases compiladas)
+javac -cp "src/lib/h2-2.4.240.jar;src/lib/ojdbc8.jar" -d bin src/*.java src/conexion/*.java src/dao/*.java src/modelo/*.java
+
+# Ejecutar la aplicación
+java -cp "bin;src/lib/h2-2.4.240.jar;src/lib/ojdbc8.jar" GestorInventario
+```
+
+Nota: si usas otra shell o sistema operativo, ajusta el separador del classpath (`:` en Unix/macOS, `;` en Windows).
+
+**Estructura del proyecto**
 ```
 src/
 ├── modelo/
-│   └── ProductoElectronico.java      # Clase modelo
+│   └── ProductoElectronico.java
 ├── conexion/
-│   └── ConexionManager.java          # Gestor de conexiones
+│   └── ConexionManager.java
 ├── dao/
-│   ├── ProductoDAO.java              # Interfaz DAO
-│   ├── ProductoDAOH2.java            # Implementación H2
-│   ├── ProductoDAOOracle.java        # Implementación Oracle básica
-│   └── ProductoDAOOracleProcedures.java  # Oracle con procedimientos
-└── GestorInventario.java             # Aplicación principal
+│   ├── ProductoDAO.java
+│   └── ProductoService.java
+└── GestorInventario.java
+
 ```
 
-##  Requisitos Previos
+**Qué puedes hacer (menú principal)**
+- Insertar producto
+- Listar productos
+- Buscar por ID
+- Actualizar producto
+- Eliminar producto
+- Buscar por nombre (búsqueda parcial)
+- Ver stock bajo
+- Listar por categoría
+- Ver estadísticas
+- Cambiar base de datos (H2 / Oracle)
+- Salir
 
-### Software Necesario
-1. **JDK 11 o superior**
-2. **Oracle Database** (Express Edition o superior)
-3. **Maven** (opcional, para gestión de dependencias)
-4. **IDE** (Eclipse, IntelliJ IDEA, NetBeans, etc.)
+**Ejemplos rápidos**
 
-### Dependencias
-- H2 Database (2.2.224)
-- Oracle JDBC Driver (ojdbc8)
-
-##  Instalación y Configuración
-
-### Paso 1: Configurar Oracle Database
-
-1. Instalar Oracle Database XE
-2. Crear usuario (si es necesario):
-```sql
-CREATE USER inventario IDENTIFIED BY password123;
-GRANT CONNECT, RESOURCE TO inventario;
-GRANT CREATE SESSION TO inventario;
-GRANT CREATE TABLE TO inventario;
-GRANT CREATE SEQUENCE TO inventario;
-GRANT CREATE PROCEDURE TO inventario;
+Insertar producto (valores de ejemplo):
 ```
-
-3. Ejecutar el script de procedimientos almacenados:
-```bash
-sqlplus system/oracle@localhost:1521/XE
-@procedimientos_oracle.sql
-```
-
-### Paso 2: Configurar Conexiones
-
-Editar `ConexionManager.java` con tus credenciales:
-
-```java
-// Oracle
-private static final String ORACLE_URL = "jdbc:oracle:thin:@localhost:1521:XE";
-private static final String ORACLE_USER = "system";
-private static final String ORACLE_PASSWORD = "tu_password";
-```
-
-### Paso 3: Agregar Dependencias
-
-**Opción A: Con Maven**
-```bash
-mvn clean install
-```
-
-**Opción B: Manual**
-1. Descargar H2: https://www.h2database.com
-2. Descargar ojdbc8.jar desde Oracle
-3. Agregar JARs al Build Path del proyecto
-
-### Paso 4: Compilar y Ejecutar
-
-**Con Maven:**
-```bash
-mvn clean compile
-mvn exec:java -Dexec.mainClass="GestorInventario"
-```
-
-**Con Java directo:**
-```bash
-javac -d bin -cp "lib/*" src/**/*.java
-java -cp "bin:lib/*" GestorInventario
-```
-
-**Desde IDE:**
-- Ejecutar `GestorInventario.java` como aplicación Java
-
-##  Campos de la Tabla
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | INT/NUMBER | Identificador único (auto-incremental) |
-| nombre | VARCHAR(100) | Nombre del producto |
-| categoria | VARCHAR(50) | Categoría (Smartphone, Laptop, etc.) |
-| precio | DECIMAL(10,2) | Precio unitario |
-| stock | INT | Cantidad en inventario |
-| fecha_ingreso | DATE | Fecha de ingreso al inventario |
-
-##  Funcionalidades Implementadas
-
-### Operaciones CRUD Básicas
--  **Create**: Insertar nuevos productos
--  **Read**: Listar todos los productos
--  **Update**: Actualizar productos existentes
--  **Delete**: Eliminar productos
-
-### Funcionalidades Adicionales
--  **Búsqueda con LIKE**: Buscar productos por nombre
--  **Stock bajo**: Listar productos con stock menor a X
--  **Filtro por categoría**: Listar productos por categoría
--  **Estadísticas**: Contador de productos y valores totales
-
-### Procedimientos Almacenados Oracle
-- `sp_insertar_producto`: Insertar con validación
-- `sp_actualizar_producto`: Actualizar con validación
-- `sp_eliminar_producto`: Eliminar con validación
-- `sp_ajustar_stock_categoria`: Ajuste masivo de stock
-- `sp_obtener_estadisticas`: Estadísticas completas
-- `fn_productos_stock_bajo`: Función para contar stock bajo
-- `fn_valor_por_categoria`: Función para calcular valor por categoría
-
-##  Uso del Sistema
-
-### Menú Principal
-```
-1.  Insertar producto
-2.  Listar todos los productos
-3.  Buscar producto por ID
-4.   Actualizar producto
-5.   Eliminar producto
-6.  Buscar por nombre (LIKE)
-7.   Listar productos con stock bajo
-8.  Listar por categoría
-9.  Ver estadísticas
-10.  Cambiar base de datos
-0.  Salir
-```
-
-### Ejemplo de Uso
-
-**Insertar Producto:**
-```
-Nombre: iPhone 15 Pro
-Categoría: Smartphone
-Precio: 1299.99
+Nombre: iPhone 16
+Categoría: Telefono
+Precio: 999.99
 Stock: 50
-Fecha ingreso: 06/11/2024
 ```
 
-**Buscar por Nombre:**
+Buscar productos por texto:
 ```
-Término de búsqueda: iPhone
-→ Muestra todos los productos que contengan "iPhone"
-```
-
-**Stock Bajo:**
-```
-Stock mínimo: 10
-→ Muestra productos con menos de 10 unidades
+Buscar: iPhone
+Resultado: iPhone 16, iPhone 15, ...
 ```
 
-##  Cambio entre Bases de Datos
+**Bases de datos**
+- H2 (recomendada para empezar):
+  - Ligera, no requiere instalación.
+  - Guarda datos en un archivo local dentro del proyecto.
 
-El sistema permite alternar entre H2 y Oracle en tiempo de ejecución:
-- Las tablas se crean automáticamente al iniciar
-- Los datos son independientes en cada BD
-- Cambio inmediato sin reiniciar aplicación
+- Oracle (opcional, para usuarios más avanzados):
+  - Requiere instalación y configuración.
+  - Usar solo si ya tienes Oracle disponible y sabes configurarlo.
 
-##  Consultas Parametrizadas
+**Problemas comunes y soluciones**
+- Error: "Base de datos en uso"
+  - Cierra procesos Java que puedan estar usando la BD:
+  ```powershell
+  Get-Process java* | Stop-Process -Force
+  Get-Process javaw* | Stop-Process -Force
+  ```
 
-Todos los métodos usan **PreparedStatement** o **CallableStatement** para:
--  Prevenir inyección SQL
--  Mejorar rendimiento
--  Reutilización de consultas
--  Manejo seguro de tipos
+- Error: "Driver no encontrado"
+  - Asegúrate de que los JAR estén en `src/lib/` y usa el classpath correcto al compilar/ejecutar.
 
-Ejemplo:
-```java
-String sql = "SELECT * FROM productos_electronicos WHERE id = ?";
-PreparedStatement pstmt = conn.prepareStatement(sql);
-pstmt.setInt(1, id);
-```
+- No se conecta a Oracle
+  - Verifica que Oracle esté ejecutándose y que las credenciales en `ConexionManager.java` sean correctas.
 
-##  Manejo de Errores
+**Conceptos importantes (rápido)**
+- CRUD: Crear, Leer, Actualizar, Eliminar — operaciones básicas sobre datos.
+- DAO: Patrón que separa la lógica de acceso a datos del resto del programa.
+- JDBC: API Java para conectar con bases de datos.
+- Try-with-resources: estructura Java que cierra automáticamente conexiones/recurso.
 
-- Try-with-resources para cierre automático de conexiones
-- Bloques try-catch en todos los métodos DAO
-- Mensajes descriptivos de error
-- Validación de datos de entrada
-- Transacciones con COMMIT/ROLLBACK en procedimientos
+**Autor**
+Alejandro Mejias Ramirez
+DAM - AED
+Entrega: 14/11/2025
 
-##  Extensiones Posibles
+---
 
-1. **Interfaz Gráfica**: Migrar a JavaFX o Swing
-2. **Reportes**: Generar PDF/Excel con JasperReports
-3. **API REST**: Exponer funcionalidades con Spring Boot
-4. **Autenticación**: Sistema de usuarios y permisos
-5. **Logs**: Integrar Log4j para auditoría
-6. **Backup**: Exportar/importar datos
-
-##  Solución de Problemas
-
-### Error: Driver no encontrado
-```
-Solución: Verificar que los JARs estén en el classpath
-```
-
-### Error: No se puede conectar a Oracle
-```
-Solución: 
-1. Verificar que Oracle esté ejecutándose
-2. Comprobar credenciales en ConexionManager
-3. Verificar puerto (por defecto 1521)
-```
-
-### Error: Tabla no existe
-```
-Solución: El sistema crea las tablas automáticamente.
-Si persiste, ejecutar manualmente los scripts SQL.
-```
-
-##  Conceptos Demostrados
-
--  Conexión JDBC a múltiples bases de datos
--  Patrón DAO (Data Access Object)
--  Operaciones CRUD completas
--  Consultas parametrizadas
--  Procedimientos almacenados
--  Funciones almacenadas
--  Try-with-resources
--  Manejo de excepciones
--  Separación de capas (Modelo-DAO-UI)
-
-##  Autor
-
-Alejandro Mejías Ramírez
-Trabajo Práctico Individual - JDBC y Procedimientos Almacenados
